@@ -9,8 +9,8 @@ from CsvHelper import CsvHelper
 
 class CommentSpider(scrapy.Spider):
     # this spider scrapes a single article within the domain zeit.de
-    name = 'zeit.de'
-    urls = ['http://www.dailymail.co.uk/reader-comments/p/asset/readcomments/5014791?max=1000&order=desc&rcCache=shout']
+    name = 'dailymail.co.uk'
+    urls = ['http://www.dailymail.co.uk/reader-comments/p/asset/readcomments/4984538?max=1000&order=desc&rcCache=shout']
 
     def start_requests(self):
         for url in self.urls:
