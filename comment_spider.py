@@ -1,20 +1,18 @@
 import json
 
-import scrapy
-from scrapy.crawler import CrawlerProcess
+from scrapy import Spider, Request
 
-from Comment import Comment
-from CsvHelper import CsvHelper
+from comment import Comment
+from csv_helper import CsvHelper
 
 
-class CommentSpider(scrapy.Spider):
-    # this spider scrapes a single article within the domain zeit.de
+class CommentSpider(Spider):
     name = 'dailymail.co.uk'
     urls = ['http://www.dailymail.co.uk/reader-comments/p/asset/readcomments/4984538?max=1000&order=desc&rcCache=shout']
 
     def start_requests(self):
         for url in self.urls:
-            yield scrapy.Request(
+            yield Request(
                 url=str(url),
                 callback=self.parse,
                 method='GET',
@@ -36,12 +34,3 @@ class CommentSpider(scrapy.Spider):
                 reply = Comment(reply, comment.comment_id)
                 comments.append(reply)
         CsvHelper.write_comments('comments.csv', comments)
-
-
-process = CrawlerProcess({
-    'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
-    'LOG_LEVEL': 'ERROR'
-})
-
-process.crawl(CommentSpider)
-process.start()  # the script will block here until the crawling is finished

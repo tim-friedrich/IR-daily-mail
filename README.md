@@ -1,4 +1,3 @@
 # IR-daily-mail
 
-## Todo
-* Find article from 16.10
+Start project by running `main.py`.
