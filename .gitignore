@@ -127,5 +127,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-comments.csv
+comments-*.csv
+articles-*.csv
 .idea
