@@ -1,9 +1,9 @@
-from datetime import date
+import re
+from datetime import datetime
 
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 
-from constants import ARTICLES_FILE_NAME_TEMPLATE
 from csv_helper import CsvHelper
 from models.article import Article
 
@@ -17,10 +17,7 @@ class ArticleSpider(CrawlSpider):
                            restrict_xpaths='//ul[@class="archive-index home link-box"]')),
         # find days
         Rule(LinkExtractor(allow='sitemaparchive/day',
-                           restrict_xpaths='//div[contains(@class, "debate column-split")]')),
-        # find articles
-        Rule(LinkExtractor(restrict_xpaths='//ul[@class="archive-articles debate link-box"]'),
-             callback='parse_article')
+                           restrict_xpaths='//div[contains(@class, "debate column-split")]'), callback='parse_article'),
     )
 
     def parse_article(self, response):
@@ -29,11 +26,9 @@ class ArticleSpider(CrawlSpider):
             return
         url = response.url
 
-        raw_date = response.xpath('//span[@class="article-timestamp article-timestamp-published"]/text()')
-        article_date = raw_date.extract()[1].strip() if raw_date else ''
-
-        comments_count = response.xpath('//span[@class="readerCommentsCount"]/text()').extract_first()
-
-        article = Article(url, article_date, comments_count)
-        print('Found article: {}'.format(article.article_url))
-        CsvHelper.write_object_list(Article.get_csv_file_name(), [article])
+        urls = response.xpath('//ul[@class="archive-articles debate link-box"]//li//@href').extract()
+        for url in urls:
+            article_date = datetime.strptime(re.search('(?<=day_)\w*', response.url).group(), '%Y%m%d')
+            article = Article(url, article_date)
+            print('Date:{}, URL: {}'.format(article_date, article.article_url))
+            CsvHelper.write_object_list(Article.get_csv_file_name(), [article])
