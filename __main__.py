@@ -9,16 +9,16 @@ from models.comment import Comment
 from spiders.article_spider import UpdateArticleSpider, InitialArticleSpider
 from spiders.comment_spider import CommentSpider
 
-if not sys.argv or not (sys.argv[1] != 'articles' or sys.argv[1] != 'comments'):
+if not sys.argv or len(sys.argv) == 1 or not (sys.argv[1] != 'articles' or sys.argv[1] != 'comments'):
     raise AttributeError('Please add "articles" or "comments" as arguments (Arguments: {})'.format(sys.argv))
 
 crawl_comments = sys.argv[1] == 'comments'
 
 # delete files if there has been an run on the same day before
-if os.path.isfile(OUT_DIR + Comment.get_csv_file_name()):
+if os.path.isfile(OUT_DIR + Comment.get_csv_file_name()) and crawl_comments:
     os.remove(OUT_DIR + Comment.get_csv_file_name())
 
-if os.path.isfile(OUT_DIR + Article.get_csv_file_name()):
+if os.path.isfile(OUT_DIR + Article.get_csv_file_name()) and not crawl_comments:
     os.remove(OUT_DIR + Article.get_csv_file_name())
 
 be_polite = os.getenv('POLITE', False) == 'True'
