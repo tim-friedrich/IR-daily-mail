@@ -1,3 +1,8 @@
+from datetime import date
+
+from constants import COMMENTS_FILE_NAME_TEMPLATE
+
+
 class Comment:
     def __init__(self, raw_comment, parent_comment_id=''):
         self.comment_id = raw_comment.get('id')
@@ -11,8 +16,12 @@ class Comment:
 
     @property
     def up_votes(self):
-        return (self.vote_count + self.vote_rating) / 2
+        return int((self.vote_count + self.vote_rating) / 2)
 
     @property
     def down_votes(self):
-        return (self.vote_count - self.vote_rating) /2
+        return int((self.vote_count - self.vote_rating) / 2)
+
+    @staticmethod
+    def get_csv_file_name():
+        return COMMENTS_FILE_NAME_TEMPLATE.format(date.today().strftime('%Y%m%d'))
