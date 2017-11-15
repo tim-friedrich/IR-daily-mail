@@ -1,4 +1,6 @@
 import json
+import logging
+
 from json import JSONDecodeError
 
 import scrapy
@@ -31,7 +33,7 @@ class CommentSpider(Spider):
 
     def parse(self, response):
         if response.status is not 200:
-            print('Response Code was {}'.format(response.status))
+            logging.info('Response Code was {}'.format(response.status))
             return
         try:
             response_data = json.loads(response.text).get('payload')
@@ -53,6 +55,6 @@ class CommentSpider(Spider):
                 yield scrapy.Request(COMMENTS_URL_TEMPLATE.format(response_data.get('assetId'), offset), self.parse)
 
         except AttributeError as e:
-            print('AttributeError: {}. Response: {}'.format(e, response.text))
+            logging.info('AttributeError: {}. Response: {}'.format(e, response.text))
         except JSONDecodeError as e:
-            print('JSONError: {}. Response: {}'.format(e, response.text))
+            logging.error('JSONError: {}. Response: {}'.format(e, response.text))

@@ -1,4 +1,5 @@
 import re
+import logging
 from abc import ABC
 from datetime import datetime
 
@@ -21,14 +22,14 @@ class ArticleSpider(CrawlSpider, ABC):
 
     def parse_article(self, response):
         if response.status is not 200:
-            print('Response Code was {}'.format(response.status))
+            logging.error('Response Code was {}'.format(response.status))
             return
 
         urls = response.xpath('//ul[@class="archive-articles debate link-box"]//li//@href').extract()
         for url in urls:
             article_date = datetime.strptime(re.search('(?<=day_)\w*', response.url).group(), '%Y%m%d')
             article = Article(url, article_date)
-            print('Date: {}, ID: {}'.format(article_date, article.article_id))
+            logging.info('Date: {}, ID: {}'.format(article_date, article.article_id))
             CsvHelper.write_object_list(self.helper.get_csv_file_name(), [article])
 
     @staticmethod

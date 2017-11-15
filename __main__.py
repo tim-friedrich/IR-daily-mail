@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import logging
 
 from scrapy.crawler import CrawlerProcess
 
@@ -33,7 +34,8 @@ def start_crawling(crawl_comments: bool):
     if be_polite:
         crawl_settings['DOWNLOAD_DELAY'] = 1
 
-    print('Settings: {}'.format(crawl_settings))
+    logging.info('Settings: {}'.format(crawl_settings))
+
     process = CrawlerProcess(crawl_settings)
 
     if crawl_comments:
@@ -46,34 +48,38 @@ def start_crawling(crawl_comments: bool):
         else:
             crawler_class = InitialArticleSpider
 
-    print('Crawler: ' + crawler_class.__name__)
+    logging.info('Crawler: ' + crawler_class.__name__)
     process.crawl(crawler_class)
-    print('Start crawling. Please wait...')
+    logging.info('Start crawling. Please wait...')
     process.start()  # the script will block here until the crawling is finished
 
 
 def start_indexing():
-    print('Generating comments index...')
+    logging.info('Generating comments index...')
+
     comments = CsvHelper.read_object_list(CommentsHelper().get_latest_file(), Comment)
     index = CommentsIndex()
     index.build_index(comments)
 
-    print('Index created')
-
+    logging.info('Index created')
 
 def start_search(query: str):
     index = CommentsIndex()
     if query:
-        print('Searching... (query: {})'.format(query))
+        logging.info('Searching... (query: {})'.format(query))
         start_time = time.time()
         results = index.search(query, 6)
-        print("--- %s seconds ---" % ((time.time() - start_time)))
+        logging.info("--- %s seconds ---" % ((time.time() - start_time)))
 
         for comment in results:
             print(comment.comment_text)
 
 
 available_arguments = [COMMENTS, ARTICLES, SEARCH, INDEX]
+
+FORMAT = '%(asctime)s %(name)-14s %(levelname)-8s %(message)s'
+
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 
 if not sys.argv or len(sys.argv) == 1 or not (sys.argv[1] in available_arguments):
     raise AttributeError('Please provide a parameter (e.g.: {})'.format(', '.join(available_arguments)))
