@@ -1,6 +1,5 @@
 import json
 import logging
-
 from json import JSONDecodeError
 
 import scrapy
@@ -36,8 +35,13 @@ class CommentSpider(Spider):
             logging.info('Response Code was {}'.format(response.status))
             return
         try:
-            response_data = json.loads(response.text).get('payload')
-            raw_comments = response_data.get('page')
+            response_text = json.loads(response.text)
+            payload = response_text.get('payload')
+            if response_text.get('status') == 'error':
+                logging.debug(payload)
+                return
+
+            raw_comments = payload.get('page')
             comments = []
             for raw_comment in raw_comments:
                 comment = Comment(raw_comment)
@@ -49,10 +53,10 @@ class CommentSpider(Spider):
             CsvHelper.write_object_list(self.comments_helper.get_csv_file_name(), comments)
 
             # find all comments if article has more than 1000
-            offset = int(response_data.get('offset'))
-            if offset + MAX_COMMENTS < response_data.get('parentCommentsCount'):
+            offset = int(payload.get('offset'))
+            if offset + MAX_COMMENTS < payload.get('parentCommentsCount'):
                 offset += 1000
-                yield scrapy.Request(COMMENTS_URL_TEMPLATE.format(response_data.get('assetId'), offset), self.parse)
+                yield scrapy.Request(COMMENTS_URL_TEMPLATE.format(payload.get('assetId'), offset), self.parse)
 
         except AttributeError as e:
             logging.info('AttributeError: {}. Response: {}'.format(e, response.text))

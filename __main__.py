@@ -1,7 +1,7 @@
+import logging
 import os
 import sys
 import time
-import logging
 
 from scrapy.crawler import CrawlerProcess
 
@@ -51,6 +51,8 @@ def start_crawling(crawl_comments: bool):
     logging.info('Crawler: ' + crawler_class.__name__)
     process.crawl(crawler_class)
     logging.info('Start crawling. Please wait...')
+    logging.getLogger('scrapy').setLevel(logging.ERROR)
+
     process.start()  # the script will block here until the crawling is finished
 
 
