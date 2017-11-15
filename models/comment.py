@@ -1,4 +1,5 @@
 from models.csv_model import CsvModel
+from utils import replace_disallowed_characters
 
 
 class Comment(CsvModel):
@@ -6,8 +7,8 @@ class Comment(CsvModel):
         if raw_comment:
             self.comment_id = raw_comment.get('id')
             self.article_url = 'http://www.dailymail.co.uk{}'.format(raw_comment.get('assetUrl'))
-            self.comment_author = raw_comment.get('userAlias')
-            self.comment_text = raw_comment.get('message')
+            self.comment_author = replace_disallowed_characters(raw_comment.get('userAlias'))
+            self.comment_text = replace_disallowed_characters(raw_comment.get('message'))
             self.timestamp = raw_comment.get('dateCreated')
             self.parent_comment_id = parent_comment_id if parent_comment_id else ''
             self.vote_count = raw_comment.get('voteCount')

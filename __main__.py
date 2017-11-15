@@ -4,13 +4,14 @@ import time
 
 from scrapy.crawler import CrawlerProcess
 
-from constants import OUT_DIR, COMMENTS, ARTICLES, SEARCH, INDEX
+from constants import COMMENTS, ARTICLES, SEARCH, INDEX
 from helper.csv_helper import CsvHelper
 from helper.model_helper import CommentsHelper, ArticlesHelper
 from index import CommentsIndex
 from models.comment import Comment
 from spiders.article_spider import UpdateArticleSpider, InitialArticleSpider
 from spiders.comment_spider import CommentSpider
+from utils import delete_file_if_exists
 
 
 def start_crawling(crawl_comments: bool):
@@ -18,11 +19,10 @@ def start_crawling(crawl_comments: bool):
     articles_helper = ArticlesHelper()
 
     # delete files if there has been an run on the same day before
-    if os.path.isfile(OUT_DIR + comments_helper.get_csv_file_name()) and crawl_comments:
-        os.remove(OUT_DIR + comments_helper.get_csv_file_name())
-
-    if os.path.isfile(OUT_DIR + articles_helper.get_csv_file_name()) and not crawl_comments:
-        os.remove(OUT_DIR + articles_helper.get_csv_file_name())
+    if crawl_comments:
+        delete_file_if_exists(comments_helper.get_latest_file())
+    else:
+        delete_file_if_exists(articles_helper.get_latest_file())
 
     be_polite = os.getenv('POLITE', False) == 'True'
 
@@ -51,6 +51,7 @@ def start_crawling(crawl_comments: bool):
     print('Start crawling. Please wait...')
     process.start()  # the script will block here until the crawling is finished
 
+
 def start_indexing():
     print('Generating comments index...')
     comments = CsvHelper.read_object_list(CommentsHelper().get_latest_file(), Comment)
@@ -58,6 +59,7 @@ def start_indexing():
     index.build_index(comments)
 
     print('Index created')
+
 
 def start_search(query: str):
     index = CommentsIndex()

@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import timedelta, datetime
 
@@ -21,3 +22,15 @@ def check_file_name(file_name):
     if not file_name.startswith(OUT_DIR):
         file_name = OUT_DIR + file_name
     return file_name
+
+
+def replace_disallowed_characters(string):
+    string = string.replace('\n', '')
+    return string.replace('"', "'")
+
+
+def delete_file_if_exists(file_name):
+    file_name = check_file_name(file_name)
+
+    if os.path.isfile(file_name):
+        os.remove(file_name)
