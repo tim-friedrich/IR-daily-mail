@@ -5,7 +5,8 @@ import scrapy
 from scrapy import Spider, Request
 
 from constants import MAX_COMMENTS, COMMENTS_URL_TEMPLATE
-from csv_helper import CsvHelper
+from helper.csv_helper import CsvHelper
+from helper.model_helper import ArticlesHelper, CommentsHelper
 from models.article import Article
 from models.comment import Comment
 
@@ -13,8 +14,13 @@ from models.comment import Comment
 class CommentSpider(Spider):
     name = 'dailymail comments'
 
+    def __init__(self, **kwargs):
+        self.articles_helper = ArticlesHelper()
+        self.comments_helper = CommentsHelper()
+        super().__init__(**kwargs)
+
     def start_requests(self):
-        for article in CsvHelper.read_object_list(Article.get_latest_file(), Article):
+        for article in CsvHelper.read_object_list(self.articles_helper.get_latest_file(), Article):
             url = COMMENTS_URL_TEMPLATE.format(article.article_id, 0)
             yield Request(
                 url=str(url),
@@ -38,7 +44,7 @@ class CommentSpider(Spider):
                     reply = Comment(reply, comment.comment_id)
                     comments.append(reply)
 
-            CsvHelper.write_object_list(Comment.get_csv_file_name(), comments)
+            CsvHelper.write_object_list(self.comments_helper.get_csv_file_name(), comments)
 
             # find all comments if article has more than 1000
             offset = int(response_data.get('offset'))
