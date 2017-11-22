@@ -1,4 +1,5 @@
 import pickle
+import logging
 
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import TweetTokenizer
@@ -19,8 +20,11 @@ class CommentsIndex:
             pickle.dump(self.index, output, pickle.HIGHEST_PROTOCOL)
 
     def restore_index(self):
-        with open('out/index.pkl', 'rb') as input:
-            self.index = pickle.load(input)
+        try:
+            with open('out/index.pkl', 'rb') as input:
+                self.index = pickle.load(input)
+        except FileNotFoundError:
+            logging.info('No previous index was found')
 
     def search(self, query: str, number_of_results: int):
         if len(query.split(' ')) > 1:
