@@ -18,6 +18,8 @@ class CommentSpider(Spider):
     def __init__(self, **kwargs):
         self.articles_helper = ArticlesHelper()
         self.comments_helper = CommentsHelper()
+        self.csv_helper = CsvHelper(self.comments_helper.get_csv_file_name())
+        self.counter = 0
         super().__init__(**kwargs)
 
     def start_requests(self):
@@ -50,7 +52,9 @@ class CommentSpider(Spider):
                     reply = Comment(reply, comment.comment_id)
                     comments.append(reply)
 
-            CsvHelper.write_object_list(self.comments_helper.get_csv_file_name(), comments)
+            self.csv_helper.write_object_list(comments)
+            self.counter += len(comments)
+            print('\rComments crawled: ' + '{:,}'.format(self.counter), end='')
 
             # find all comments if article has more than 1000
             offset = int(payload.get('offset'))

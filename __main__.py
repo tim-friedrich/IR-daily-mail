@@ -21,26 +21,33 @@ def start_crawling(crawl_comments: bool):
 
     # delete files if there has been an run on the same day before
     if crawl_comments:
-        delete_file_if_exists(comments_helper.get_latest_file())
+        delete_file_if_exists(comments_helper.get_csv_file_name())
     else:
-        delete_file_if_exists(articles_helper.get_latest_file())
+        delete_file_if_exists(articles_helper.get_csv_file_name())
 
-    be_polite = os.getenv('POLITE', False) == 'True'
+    try:
+        politeness_delay = float(os.getenv('POLITE', 0))
+    except ValueError:
+        logging.info('Failed to parse env variable POLITE (value: {})'.format(os.getenv('POLITE')))
+        politeness_delay = None
 
     crawl_settings = {
         'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
         'LOG_LEVEL': 'ERROR',
     }
-    if be_polite:
-        crawl_settings['DOWNLOAD_DELAY'] = 1
+    if politeness_delay:
+        crawl_settings['DOWNLOAD_DELAY'] = politeness_delay
 
     logging.info('Settings: {}'.format(crawl_settings))
 
     process = CrawlerProcess(crawl_settings)
 
     if crawl_comments:
+        if not articles_helper.get_latest_file():
+            logging.error('No articles file. You need to crawl articles at least once before comments.')
+            return
         crawler_class = CommentSpider
-        pass
+
     else:
         if articles_helper.get_latest_file():
             articles_helper.copy_last_article_file()
@@ -64,6 +71,7 @@ def start_indexing():
     index.build_index(comments)
 
     logging.info('Index created')
+
 
 def start_search(query: str):
     index = CommentsIndex()

@@ -18,6 +18,8 @@ class ArticleSpider(CrawlSpider, ABC):
 
     def __init__(self, *a, **kw):
         self.helper = ArticlesHelper()
+        self.csv_helper = CsvHelper(self.helper.get_csv_file_name())
+        self.counter = 0
         super().__init__(*a, **kw)
 
     def parse_article(self, response):
@@ -26,11 +28,15 @@ class ArticleSpider(CrawlSpider, ABC):
             return
 
         urls = response.xpath('//ul[@class="archive-articles debate link-box"]//li//@href').extract()
+        articles = []
         for url in urls:
             article_date = datetime.strptime(re.search('(?<=day_)\w*', response.url).group(), '%Y%m%d')
-            article = Article(url, article_date)
-            logging.info('Date: {}, ID: {}'.format(article_date, article.article_id))
-            CsvHelper.write_object_list(self.helper.get_csv_file_name(), [article])
+            articles.append(Article(url, article_date))
+
+        if articles:
+            self.csv_helper.write_object_list(articles)
+            self.counter += len(articles)
+            print('\rArticles crawled: ' + '{:,}'.format(self.counter), end='')
 
     @staticmethod
     def get_update_rules():

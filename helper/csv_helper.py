@@ -14,9 +14,11 @@ from utils import check_file_name
 
 
 class CsvHelper:
-    @staticmethod
-    def write_object_list(file_name: str, object_list):
-        file_name = check_file_name(file_name)
+    def __init__(self, file_name: str):
+        self.file_name = file_name
+
+    def write_object_list(self, object_list):
+        file_name = check_file_name(self.file_name)
 
         object_list = [element.__dict__ for element in object_list]
         if not object_list:
