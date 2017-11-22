@@ -43,7 +43,7 @@ def start_crawling(crawl_comments: bool):
     process = CrawlerProcess(crawl_settings)
 
     if crawl_comments:
-        if not comments_helper.get_latest_file():
+        if not articles_helper.get_latest_file():
             logging.error('No articles file. You need to crawl articles at least once before comments.')
             return
         crawler_class = CommentSpider
