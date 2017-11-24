@@ -6,10 +6,8 @@ import time
 from scrapy.crawler import CrawlerProcess
 
 from constants import COMMENTS, ARTICLES, SEARCH, INDEX
-from helper.csv_helper import CsvHelper
 from helper.model_helper import CommentsHelper, ArticlesHelper
 from index import CommentsIndex
-from models.comment import Comment
 from spiders.article_spider import UpdateArticleSpider, InitialArticleSpider
 from spiders.comment_spider import CommentSpider
 from utils import delete_file_if_exists
@@ -65,10 +63,8 @@ def start_crawling(crawl_comments: bool):
 
 def start_indexing():
     logging.info('Generating comments index...')
-
-    comments = CsvHelper.read_object_list(CommentsHelper().get_latest_file(), Comment)
     index = CommentsIndex()
-    index.build_index(comments)
+    index.build_index()
 
     logging.info('Index created')
 
@@ -82,7 +78,7 @@ def start_search(query: str):
         logging.info("--- %s seconds ---" % ((time.time() - start_time)))
 
         for comment in results:
-            print(comment.comment_text)
+            print(comment)
 
 
 available_arguments = [COMMENTS, ARTICLES, SEARCH, INDEX]

@@ -1,8 +1,8 @@
-from models.csv_model import CsvModel
+from models.csv_model import CsvItem
 from utils import replace_disallowed_characters
 
 
-class Comment(CsvModel):
+class Comment(CsvItem):
     def __init__(self, raw_comment=None, parent_comment_id=None):
         if raw_comment:
             self.comment_id = raw_comment.get('id')
