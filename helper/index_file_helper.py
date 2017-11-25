@@ -1,6 +1,7 @@
 import pickle
 
 from constants import OUT_DIR
+from models.index import Index
 
 
 class IndexFileHelper:
@@ -12,8 +13,8 @@ class IndexFileHelper:
     def index_file(self):
         return OUT_DIR + 'index.pkl'
 
-    def write_posting_list(self, posting_list: list, index: dict):
-        pointer_index = dict()
+    def write_posting_list(self, posting_list: list, index: Index):
+        pointer_index = Index(index.get_file())
         with open(self.posting_file, mode='w', encoding='utf-8') as file:
             counter = 0
             for row in posting_list:

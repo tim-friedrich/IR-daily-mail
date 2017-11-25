@@ -7,14 +7,15 @@ from helper.csv_helper import CsvHelper
 from helper.index_file_helper import IndexFileHelper
 from helper.model_helper import CommentsHelper
 from models.comment import Comment
+from models.index import Index
 
 
 class CommentsIndex:
     def __init__(self):
+        self.index = Index(CommentsHelper().get_latest_file())
         self.stemmer = SnowballStemmer("english")
         self.tokenizer = TweetTokenizer()
         self.helper = IndexFileHelper()
-        self.index = dict()
         self.restore_index()
 
     def __del__(self):
@@ -23,6 +24,10 @@ class CommentsIndex:
     def restore_index(self):
         try:
             self.index = self.helper.get_index()
+            if self.index.get_file() != CommentsHelper().get_latest_file():
+                logging.debug(
+                    'Restored index based on {}. To create the index of last file use attribute "index".'.format(
+                        self.index.get_file()))
         except FileNotFoundError:
             logging.info('No previous index was found. Creating new one.')
             self.build_index()
@@ -38,7 +43,7 @@ class CommentsIndex:
                 continue
             i = 0
             for posting in self.helper.get_posting(posting_pointer[0], posting_pointer[1]):
-                comment = CsvHelper.read_comment(CommentsHelper().get_latest_file(), *posting.split(';'))
+                comment = CsvHelper.read_comment(self.index.get_file(), *posting.split(';'))
                 results.append(comment)
                 if i > number_of_results:
                     break
@@ -47,13 +52,10 @@ class CommentsIndex:
         return results
 
     def build_index(self):
-        comments_file = CommentsHelper().get_latest_file()
-        self.index = dict()
-
-        logging.info('Comments to index: ' + str(CsvHelper.get_file_length(comments_file) - 1))
+        logging.info('Comments to index: ' + str(CsvHelper.get_file_length(self.index.get_file()) - 1))
         counter = 0
         posting_list = []
-        for comment in CsvHelper.read_object_list(comments_file, Comment):  # type: Comment
+        for comment in CsvHelper.read_object_list(self.index.get_file(), Comment):  # type: Comment
             for token in self.get_tokens(comment.comment_text):
                 posting_list_pointer = self.index.get(token)  # type: int
                 posting = '{};{}'.format(comment.pointer, comment.length)
