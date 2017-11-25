@@ -63,8 +63,7 @@ def start_crawling(crawl_comments: bool):
 
 def start_indexing():
     logging.info('Generating comments index...')
-    index = CommentsIndex()
-    index.build_index()
+    CommentsIndex(rebuild_index=True)
 
     logging.info('Index created')
 

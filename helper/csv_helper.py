@@ -48,7 +48,7 @@ class CsvHelper:
                 line = csv_file.readline()
 
     @staticmethod
-    def read_comment(file_name, pointer, length):
+    def read_comment(file_name, pointer, length, token_position):
         file_name = check_file_name(file_name)
 
         if not os.path.isfile(file_name):
@@ -58,7 +58,7 @@ class CsvHelper:
             csv_file.seek(int(pointer))
             line = csv_file.read(int(length))
             data = next(csv.reader(StringIO(line.decode().rstrip())))
-            return Comment.parse_csv_row(data)
+            return Comment.parse_csv_row(data, token_position=token_position)
 
     @staticmethod
     def get_file_length(file_name):

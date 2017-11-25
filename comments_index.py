@@ -11,12 +11,15 @@ from models.index import Index
 
 
 class CommentsIndex:
-    def __init__(self):
+    def __init__(self, rebuild_index=False):
         self.index = Index(CommentsHelper().get_latest_file())
         self.stemmer = SnowballStemmer("english")
         self.tokenizer = TweetTokenizer()
         self.helper = IndexFileHelper()
-        self.restore_index()
+        if rebuild_index:
+            self.build_index()
+        else:
+            self.restore_index()
 
     def __del__(self):
         self.helper.write_index(self.index)
@@ -43,7 +46,7 @@ class CommentsIndex:
                 continue
             i = 0
             for posting in self.helper.get_posting(posting_pointer[0], posting_pointer[1]):
-                comment = CsvHelper.read_comment(self.index.get_file(), *posting.split(';'))
+                comment = CsvHelper.read_comment(self.index.get_file(), *posting.rstrip().split(';'))
                 results.append(comment)
                 if i > number_of_results:
                     break
@@ -56,15 +59,16 @@ class CommentsIndex:
         counter = 0
         posting_list = []
         for comment in CsvHelper.read_object_list(self.index.get_file(), Comment):  # type: Comment
+            token_position = 0
             for token in self.get_tokens(comment.comment_text):
                 posting_list_pointer = self.index.get(token)  # type: int
-                posting = '{};{}'.format(comment.pointer, comment.length)
+                posting = '{};{};{}'.format(comment.pointer, comment.length, token_position)
                 if posting_list_pointer is not None:
                     posting_list[posting_list_pointer] += ',' + posting
                 else:
                     posting_list.append(posting)
                     self.index[token] = len(posting_list) - 1
-
+                token_position += 1
             counter += 1
             print('\rComments indexed: ' + '{:,}'.format(counter), end='')
         self.index = self.helper.write_posting_list(posting_list, self.index)
