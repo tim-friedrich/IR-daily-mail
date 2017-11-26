@@ -17,6 +17,12 @@ class Comment(CsvItem):
     def __str__(self):
         return '{}: {}'.format(self.comment_author, self.comment_text)
 
+    def __eq__(self, other):
+        return self.comment_id == other.comment_id
+
+    def __hash__(self):
+        return hash(self.comment_id)
+
     @property
     def up_votes(self):
         return int((self.vote_count + self.vote_rating) / 2)

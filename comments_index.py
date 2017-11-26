@@ -36,23 +36,41 @@ class CommentsIndex:
             self.build_index()
 
     def search(self, query: str, number_of_results: int):
-        if len(query.split(' ')) > 1:
-            raise AttributeError('Only single word query\'s are supported for now')
         processed_query = self.get_tokens(query)
-        results = list()
-        for token in processed_query:
-            posting_pointer = self.index.get(token)
-            if not posting_pointer:
-                continue
-            i = 0
-            for posting in self.helper.get_posting(posting_pointer[0], posting_pointer[1]):
-                comment = CsvHelper.read_comment(self.index.get_file(), *posting.rstrip().split(';'))
-                results.append(comment)
-                if i > number_of_results:
-                    break
-                i += 1
 
-        return results
+        result_stack = []
+        pending_operation = ''
+        for token in processed_query:
+            if token == 'and' or token == 'or' or token == 'not':
+                pending_operation = token.upper()
+            else:
+                results = set()
+                pointers = self.index.get(token)
+                if not pointers:
+                    continue
+                i = 0
+                for pointer in pointers:
+                    comment = CsvHelper.read_comment(pointer)
+                    results.add(comment)
+                    if i > number_of_results:
+                        break
+                    i += 1
+                result_stack.append(results)
+
+                if pending_operation != '':
+                    results = getattr(self, pending_operation)(result_stack.pop(), result_stack.pop())
+                    result_stack.append(results)
+
+        return result_stack[-1]
+
+    def AND(self, left_bag, right_bag):
+        return left_bag.intersection(right_bag)
+
+    def NOT(self, left_bag, right_bag):
+        return left_bag - right_bag
+
+    def OR(self, left_bag, right_bag):
+        return left_bag.union(right_bag)
 
     def build_index(self):
         logging.info('Comments to index: ' + str(CsvHelper.get_file_length(self.index.get_file()) - 1))
