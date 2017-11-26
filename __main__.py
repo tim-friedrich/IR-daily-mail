@@ -6,10 +6,8 @@ import time
 from scrapy.crawler import CrawlerProcess
 
 from constants import COMMENTS, ARTICLES, SEARCH, INDEX
-from helper.csv_helper import CsvHelper
 from helper.model_helper import CommentsHelper, ArticlesHelper
-from index import CommentsIndex
-from models.comment import Comment
+from comments_index import CommentsIndex
 from spiders.article_spider import UpdateArticleSpider, InitialArticleSpider
 from spiders.comment_spider import CommentSpider
 from utils import delete_file_if_exists
@@ -65,10 +63,7 @@ def start_crawling(crawl_comments: bool):
 
 def start_indexing():
     logging.info('Generating comments index...')
-
-    comments = CsvHelper.read_object_list(CommentsHelper().get_latest_file(), Comment)
-    index = CommentsIndex()
-    index.build_index(comments)
+    CommentsIndex(rebuild_index=True)
 
     logging.info('Index created')
 
@@ -79,17 +74,21 @@ def start_search(query: str):
         logging.info('Searching... (query: {})'.format(query))
         start_time = time.time()
         results = index.search(query, 6)
-        logging.info("--- %s seconds ---" % ((time.time() - start_time)))
+        logging.info("--- %s seconds ---" % (time.time() - start_time))
 
         for comment in results:
-            print(comment.comment_text)
+            print(comment)
 
 
 available_arguments = [COMMENTS, ARTICLES, SEARCH, INDEX]
 
 FORMAT = '%(asctime)s %(name)-14s %(levelname)-8s %(message)s'
+if not os.path.exists('logs'):
+    os.mkdir('logs')
+logging_file_name = 'logs/{}.log'.format(time.strftime("%Y%m%d-%H%M%S"))
 
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+logging.basicConfig(format=FORMAT, level=logging.DEBUG, filename=logging_file_name)
+logging.getLogger().addHandler(logging.StreamHandler())
 
 if not sys.argv or len(sys.argv) == 1 or not (sys.argv[1] in available_arguments):
     raise AttributeError('Please provide a parameter (e.g.: {})'.format(', '.join(available_arguments)))

@@ -1,9 +1,9 @@
 import re
 
-from models.csv_model import CsvModel
+from models.csv_model import CsvItem
 
 
-class Article(CsvModel):
+class Article(CsvItem):
     def __init__(self, article_url=None, article_date=None):
         if article_url and article_date:
             self.article_id = re.search('(?<=article-)\w*', article_url).group()

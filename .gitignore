@@ -130,3 +130,6 @@ Temporary Items
 comments-*.csv
 articles-*.csv
 .idea
+logs/
+index.pkl
+posting_list
