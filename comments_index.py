@@ -45,12 +45,12 @@ class CommentsIndex:
                 pending_operation = token.upper()
             else:
                 results = set()
-                pointers = self.index.get(token)
-                if not pointers:
+                postings = self.get_postings(token)
+                if not postings:
                     continue
                 i = 0
-                for pointer in pointers:
-                    comment = CsvHelper.read_comment(pointer)
+                for posting_pointer in postings:
+                    comment = CsvHelper.read_comment(self.index.get_file(), *posting_pointer.rstrip().split(';'))
                     results.add(comment)
                     if i > number_of_results:
                         break
@@ -67,7 +67,7 @@ class CommentsIndex:
         return left_bag.intersection(right_bag)
 
     def NOT(self, left_bag, right_bag):
-        return left_bag - right_bag
+        return right_bag - left_bag
 
     def OR(self, left_bag, right_bag):
         return left_bag.union(right_bag)
@@ -110,3 +110,9 @@ class CommentsIndex:
         for sym in puncts:
             token = token.replace(sym, '')
         return token
+
+    def get_postings(self, token):
+        posting_pointer = self.index.get(token)
+        if not posting_pointer:
+            return []
+        return self.helper.get_posting(*posting_pointer)

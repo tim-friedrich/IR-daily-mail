@@ -48,7 +48,7 @@ class CsvHelper:
                 line = csv_file.readline()
 
     @staticmethod
-    def read_comment(file_name, pointer, length, token_position):
+    def read_comment(file_name, pointer, length, token_position=None):
         file_name = check_file_name(file_name)
 
         if not os.path.isfile(file_name):
