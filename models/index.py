@@ -8,5 +8,7 @@ class Index(dict):
             return self.file
 
     def get_starts_with(self, key_part):
-        for key in [key.startswith(key_part) for key in self]:
-            yield self.get(key)
+        postings = []
+        for key in [key for key in self if key.startswith(key_part)]:
+            postings.append(self.get(key))
+        return postings
