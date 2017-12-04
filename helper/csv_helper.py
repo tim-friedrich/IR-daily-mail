@@ -12,21 +12,25 @@ class CsvHelper:
     def __init__(self, file_name: str):
         self.file_name = file_name
 
-    def write_object_list(self, object_list):
+    def write_object_list(self, object_list: [CsvItem]):
         file_name = check_file_name(self.file_name)
 
-        object_list = [element.__dict__ for element in object_list]
         if not object_list:
             return
 
         file_exists = os.path.isfile(file_name)
         with open(file_name, newline='', mode='a', encoding='utf-8') as csv_file:
-            writer = csv.DictWriter(csv_file, object_list[0].keys(), quoting=csv.QUOTE_ALL)
+            writer = csv.DictWriter(csv_file, object_list[0].__class__.get_members(), quoting=csv.QUOTE_ALL)
             if not file_exists:
                 writer.writeheader()
 
-            for element in object_list:
-                writer.writerow(element)
+            for element in object_list:  # type: CsvItem
+                position = csv_file.tell()
+                writer.writerow(element.get_dict())
+                length = csv_file.tell() - position
+                element.pointer = position
+                element.length = length
+        return object_list
 
     @staticmethod
     def read_object_list(file_name: str, object_class: Type[CsvItem]):

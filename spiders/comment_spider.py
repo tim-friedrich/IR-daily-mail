@@ -5,6 +5,7 @@ from json import JSONDecodeError
 import scrapy
 from scrapy import Spider, Request
 
+from comments_index import CommentsIndex
 from constants import MAX_COMMENTS, COMMENTS_URL_TEMPLATE
 from helper.csv_helper import CsvHelper
 from helper.model_helper import ArticlesHelper, CommentsHelper
@@ -20,6 +21,7 @@ class CommentSpider(Spider):
         self.comments_helper = CommentsHelper()
         self.csv_helper = CsvHelper(self.comments_helper.get_csv_file_name())
         self.counter = 0
+        self.index = CommentsIndex(restore_index=False)
         super().__init__(**kwargs)
 
     def start_requests(self):
@@ -51,8 +53,9 @@ class CommentSpider(Spider):
                 for reply in raw_comment.get('replies').get('comments'):
                     reply = Comment(reply, comment.comment_id)
                     comments.append(reply)
-
-            self.csv_helper.write_object_list(comments)
+            if comments:
+                comments = self.csv_helper.write_object_list(comments)
+                self.index.append_index(comments)
             self.counter += len(comments)
             print('\rComments crawled: ' + '{:,}'.format(self.counter), end='')
 

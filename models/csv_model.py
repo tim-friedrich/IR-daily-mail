@@ -18,3 +18,9 @@ class CsvItem:
         cls_object.length = length
         cls_object.token_position = token_position
         return cls_object
+
+    def get_dict(self):
+        object_dict = {}
+        for member in self.__class__.get_members():
+            object_dict[member] = self.__getattribute__(member)
+        return object_dict

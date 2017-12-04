@@ -11,17 +11,25 @@ from models.index import Index
 
 
 class CommentsIndex:
-    def __init__(self, rebuild_index=False):
+    def __init__(self, build_index=False, restore_index=True):
         self.index = Index(CommentsHelper().get_latest_file())
         self.stemmer = SnowballStemmer("english")
         self.tokenizer = TweetTokenizer()
         self.helper = IndexFileHelper()
-        if rebuild_index:
+        self.is_building_index = False
+        self.posting_list = []
+        if build_index:
             self.build_index()
-        else:
+        elif restore_index:
             self.restore_index()
 
     def __del__(self):
+        if self.is_building_index:
+            logging.info("Saving index. This could take a while.")
+            self.index = self.helper.write_posting_list(self.posting_list, self.index)
+            self.is_building_index = False
+            self.posting_list = []
+
         self.helper.write_index(self.index)
 
     def restore_index(self):
@@ -33,7 +41,6 @@ class CommentsIndex:
                         self.index.get_file()))
         except FileNotFoundError:
             logging.info('No previous index was found. Creating new one.')
-            self.build_index()
 
     def search(self, query: str, number_of_results: int):
         processed_query = self.get_tokens(query)
@@ -73,23 +80,37 @@ class CommentsIndex:
         return left_bag.union(right_bag)
 
     def build_index(self):
+        self.is_building_index = True
         logging.info('Comments to index: ' + str(CsvHelper.get_file_length(self.index.get_file()) - 1))
         counter = 0
-        posting_list = []
         for comment in CsvHelper.read_object_list(self.index.get_file(), Comment):  # type: Comment
             token_position = 0
             for token in self.get_tokens(comment.comment_text):
                 posting_list_pointer = self.index.get(token)  # type: int
                 posting = '{};{};{}'.format(comment.pointer, comment.length, token_position)
                 if posting_list_pointer is not None:
-                    posting_list[posting_list_pointer] += ',' + posting
+                    self.posting_list[posting_list_pointer] += ',' + posting
                 else:
-                    posting_list.append(posting)
-                    self.index[token] = len(posting_list) - 1
+                    self.posting_list.append(posting)
+                    self.index[token] = len(self.posting_list) - 1
                 token_position += 1
             counter += 1
             print('\rComments indexed: ' + '{:,}'.format(counter), end='')
-        self.index = self.helper.write_posting_list(posting_list, self.index)
+
+    def append_index(self, comments):
+        self.is_building_index = True
+
+        for comment in comments:
+            token_position = 0
+            for token in self.get_tokens(comment.comment_text):
+                posting_list_pointer = self.index.get(token)  # type: int
+                posting = '{};{};{}'.format(comment.pointer, comment.length, token_position)
+                if posting_list_pointer is not None:
+                    self.posting_list[posting_list_pointer] += ',' + posting
+                else:
+                    self.posting_list.append(posting)
+                    self.index[token] = len(self.posting_list) - 1
+                token_position += 1
 
     def get_tokens(self, comment):
         comment = self.normalize(comment)
