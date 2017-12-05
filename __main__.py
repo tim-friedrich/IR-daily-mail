@@ -8,6 +8,7 @@ from scrapy.crawler import CrawlerProcess
 from constants import COMMENTS, ARTICLES, SEARCH, INDEX
 from helper.model_helper import CommentsHelper, ArticlesHelper
 from comments_index import CommentsIndex
+from search import CommentSearch
 from spiders.article_spider import UpdateArticleSpider, InitialArticleSpider
 from spiders.comment_spider import CommentSpider
 from utils import delete_file_if_exists
@@ -70,14 +71,17 @@ def start_indexing():
 
 def start_search(query: str):
     index = CommentsIndex()
+    search = CommentSearch(index)
     if query:
-        logging.info('Searching... (query: {})'.format(query))
+        logging.info('Searching... (query: {})'.format(query).encode())
         start_time = time.time()
-        results = index.search(query, 6)
-        logging.info("--- %s seconds ---" % (time.time() - start_time))
+        results = search.boolean_search(query)
+        logging.info('--- %s seconds ---' % (time.time() - start_time))
 
         for comment in results:
             print(comment)
+
+        logging.info('Number of results: {}'.format(len(results)))
 
 
 available_arguments = [COMMENTS, ARTICLES, SEARCH, INDEX]
