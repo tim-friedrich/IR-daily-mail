@@ -3,11 +3,38 @@ from copy import copy
 from comments_index import CommentsIndex
 from helper.csv_helper import CsvHelper
 from models.comment import Comment
+from vsm import VSM
 
 
 class CommentSearch:
     def __init__(self, index: CommentsIndex):
         self.index = index
+
+    def vector_space_search(self, query, limit=20):
+        processed_query = self.index.get_tokens(query)
+        results = []
+        vsm = VSM(self.index)
+        for token in processed_query:
+            postings = self.index.get_postings(token)
+            if not postings:
+                continue
+            for posting_pointer in postings:
+
+                comment = CsvHelper.read_comment(self.index.index.get_file(),
+                                                 *posting_pointer.rstrip().split(';'))  # type: Comment
+                similarity = vsm.similarity(query, comment.comment_id)
+                results.append([comment, similarity])
+
+        result = sorted(results,
+                        key=lambda x: x[1],
+                        reverse=True)
+        result_list = []
+        for post in result:
+            if len(result_list) >= limit:
+                break
+            if not post[0] in result_list:
+                result_list.append(post[0])
+        return result_list
 
     def boolean_search(self, query):
         if query.startswith('’') and query.endswith('’'):

@@ -75,7 +75,7 @@ def start_search(query: str):
     if query:
         logging.info('Searching... (query: {})'.format(query).encode())
         start_time = time.time()
-        results = search.boolean_search(query)
+        results = search.vector_space_search(query)
         logging.info('--- %s seconds ---' % (time.time() - start_time))
 
         for comment in results:

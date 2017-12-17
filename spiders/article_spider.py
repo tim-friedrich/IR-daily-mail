@@ -1,5 +1,5 @@
-import re
 import logging
+import re
 from abc import ABC
 from datetime import datetime
 
@@ -31,7 +31,12 @@ class ArticleSpider(CrawlSpider, ABC):
         articles = []
         for url in urls:
             article_date = datetime.strptime(re.search('(?<=day_)\w*', response.url).group(), '%Y%m%d')
-            articles.append(Article(url, article_date))
+            try:
+                article_id = re.search('(?<=article-)\w*', url).group()
+                articles.append(Article(article_id, article_date))
+            except AttributeError as e:
+                if 'fb-' in url:
+                    logging.info('Courious fb statment article found. Will not be saved.')
 
         if articles:
             self.csv_helper.write_object_list(articles)

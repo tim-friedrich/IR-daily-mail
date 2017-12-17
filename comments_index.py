@@ -8,6 +8,7 @@ from helper.index_file_helper import IndexFileHelper
 from helper.model_helper import CommentsHelper
 from models.comment import Comment
 from models.index import Index
+from vsm import VSM
 
 
 class CommentsIndex:
@@ -16,6 +17,8 @@ class CommentsIndex:
         self.stemmer = SnowballStemmer("english")
         self.tokenizer = TweetTokenizer()
         self.helper = IndexFileHelper()
+        self.vsm = VSM(self, rebuild_index)
+
         if rebuild_index:
             self.build_index()
         else:
@@ -42,6 +45,7 @@ class CommentsIndex:
         for comment in CsvHelper.read_object_list(self.index.get_file(), Comment):  # type: Comment
             token_position = 0
             for token in self.get_tokens(comment.comment_text):
+                self.vsm.add_term(comment.comment_id, token)
                 posting_list_pointer = self.index.get(token)  # type: int
                 posting = '{};{};{}'.format(comment.pointer, comment.length, token_position)
                 if posting_list_pointer is not None:
@@ -79,7 +83,8 @@ class CommentsIndex:
             postings = []
             for pointer in self.index.get_starts_with(token):
                 for posting in self.helper.get_posting(*pointer):
-                    postings.append(posting)
+                    if not posting in postings:
+                        postings.append(posting)
             return postings
         posting_pointer = self.index.get(token)
         if not posting_pointer:
