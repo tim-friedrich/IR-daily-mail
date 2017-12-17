@@ -1,3 +1,4 @@
 scrapy==1.4.0
 pandas==0.21.0
 nltk==3.2.5
+xdelta3==0.0.5

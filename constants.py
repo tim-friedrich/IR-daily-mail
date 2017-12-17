@@ -6,9 +6,3 @@ MAX_COMMENTS = 1000
 OUT_DIR = './out/'
 COMMENTS_FILE_NAME_TEMPLATE = 'comments-{}.csv'
 ARTICLES_FILE_NAME_TEMPLATE = 'articles-{}.csv'
-
-# Process arguments
-COMMENTS = 'comments'
-ARTICLES = 'articles'
-SEARCH = 'search'
-INDEX = 'index'

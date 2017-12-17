@@ -133,3 +133,5 @@ articles-*.csv
 logs/
 index.pkl
 posting_list
+frequency
+*.comp

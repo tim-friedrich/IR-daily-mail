@@ -1,11 +1,11 @@
+import argparse
 import logging
 import os
-import sys
 import time
 
 from scrapy.crawler import CrawlerProcess
 
-from constants import COMMENTS, ARTICLES, SEARCH, INDEX
+from helper.index_file_helper import IndexFileHelper
 from helper.model_helper import CommentsHelper, ArticlesHelper
 from comments_index import CommentsIndex
 from search import CommentSearch
@@ -64,6 +64,10 @@ def start_crawling(crawl_comments: bool):
 
 def start_indexing():
     logging.info('Generating comments index...')
+    file_helper = IndexFileHelper()
+    os.remove(file_helper.posting_file)
+    os.remove(file_helper.index_file)
+    os.remove('out/frequency')
     CommentsIndex(rebuild_index=True)
 
     logging.info('Index created')
@@ -84,7 +88,9 @@ def start_search(query: str):
         logging.info('Number of results: {}'.format(len(results)))
 
 
-available_arguments = [COMMENTS, ARTICLES, SEARCH, INDEX]
+def compress_index():
+    IndexFileHelper().compress_index('out/posting_list')
+
 
 FORMAT = '%(asctime)s %(name)-14s %(levelname)-8s %(message)s'
 if not os.path.exists('logs'):
@@ -94,17 +100,37 @@ logging_file_name = 'logs/{}.log'.format(time.strftime("%Y%m%d-%H%M%S"))
 logging.basicConfig(format=FORMAT, level=logging.DEBUG, filename=logging_file_name)
 logging.getLogger().addHandler(logging.StreamHandler())
 
-if not sys.argv or len(sys.argv) == 1 or not (sys.argv[1] in available_arguments):
-    raise AttributeError('Please provide a parameter (e.g.: {})'.format(', '.join(available_arguments)))
+parser = argparse.ArgumentParser(description='Comment Search for Daily Mail.')
+parser.add_argument('--comments',
+                    help='Crawl for comments, based on the crawled articles.',
+                    dest='comments',
+                    action='store_true')
+parser.add_argument('--articles',
+                    help='Crawl for articles.',
+                    dest='articles',
+                    action='store_true')
+parser.add_argument('--index',
+                    help='Generate index for crawled comments.',
+                    dest='index',
+                    action='store_true')
+parser.add_argument('--search',
+                    help='Search for the following query.',
+                    dest='search',
+                    action='store')
+parser.add_argument('--compress',
+                    help='Compress the index.',
+                    dest='compress',
+                    action='store_true')
 
-if sys.argv[1] == COMMENTS:
+args = parser.parse_args()
+
+if args.comments:
     start_crawling(True)
-elif sys.argv[1] == ARTICLES:
+elif args.articles:
     start_crawling(False)
-elif sys.argv[1] == INDEX:
+elif args.index:
     start_indexing()
-elif sys.argv[1] == SEARCH:
-    query = ''
-    if len(sys.argv) == 3:
-        query = sys.argv[2]
-    start_search(query)
+elif args.search:
+    start_search(args.search)
+elif args.compress:
+    compress_index()

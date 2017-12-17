@@ -1,4 +1,7 @@
+import logging
 import pickle
+
+import xdelta3
 
 from constants import OUT_DIR
 from models.index import Index
@@ -8,6 +11,10 @@ class IndexFileHelper:
     @property
     def posting_file(self):
         return OUT_DIR + 'posting_list'
+
+    @property
+    def compressed_postings(self):
+        return OUT_DIR + 'posting_list.comp'
 
     @property
     def index_file(self):
@@ -42,3 +49,19 @@ class IndexFileHelper:
     def get_index(self):
         with open(self.index_file, 'rb') as file:
             return pickle.load(file)
+
+    def compress_index(self, file_name):
+        logging.info('Compressing {}'.format(file_name))
+        with open(file_name, mode='rb') as file:
+            with open(file_name + '.comp', mode='wb+') as compressed_file:
+                previous_line = ''
+                for line in file:
+                    if not previous_line:
+                        previous_line = line
+                        encoded_line = line
+                    else:
+                        try:
+                            encoded_line = xdelta3.encode(previous_line, line)
+                        except xdelta3.NoDeltaFound:
+                            encoded_line = line
+                    compressed_file.write(encoded_line)
