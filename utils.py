@@ -36,3 +36,10 @@ def delete_file_if_exists(file_name):
 
     if os.path.isfile(file_name):
         os.remove(file_name)
+
+
+def extract_article_id(article_url:str):
+    result = re.search('(?<=article-)\w*', article_url)
+    if result:
+        return result.group()
+    return None

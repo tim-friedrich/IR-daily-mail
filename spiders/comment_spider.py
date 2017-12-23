@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import date
 from json import JSONDecodeError
 
 import scrapy
@@ -18,7 +19,7 @@ class CommentSpider(Spider):
     def __init__(self, **kwargs):
         self.articles_helper = ArticlesHelper()
         self.comments_helper = CommentsHelper()
-        self.csv_helper = CsvHelper(self.comments_helper.get_csv_file_name())
+        self.csv_helper = CsvHelper(date.today().strftime('%Y%m%d'))
         self.counter = 0
         super().__init__(**kwargs)
 
@@ -52,7 +53,7 @@ class CommentSpider(Spider):
                     reply = Comment(reply, comment.comment_id)
                     comments.append(reply)
 
-            self.csv_helper.write_object_list(comments)
+            self.csv_helper.write_comments(comments)
             self.counter += len(comments)
             print('\rComments crawled: ' + '{:,}'.format(self.counter), end='')
 

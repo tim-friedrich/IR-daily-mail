@@ -7,6 +7,7 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 
 from helper.csv_helper import CsvHelper
+
 from helper.model_helper import ArticlesHelper
 from models.article import Article
 from utils import date_range, extract_date

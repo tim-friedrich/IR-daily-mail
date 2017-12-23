@@ -1,5 +1,5 @@
 from models.csv_model import CsvItem
-from utils import replace_disallowed_characters
+from utils import replace_disallowed_characters, extract_article_id
 
 
 class Comment(CsvItem):
@@ -22,6 +22,10 @@ class Comment(CsvItem):
 
     def __hash__(self):
         return hash(self.comment_id)
+
+    @property
+    def article_id(self):
+        return extract_article_id(self.article_url)
 
     @property
     def up_votes(self):
