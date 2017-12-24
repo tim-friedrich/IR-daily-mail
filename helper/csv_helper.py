@@ -36,7 +36,7 @@ class CsvHelper:
         DIR = os.path.join(OUT_DIR, self.file_name)
         if not os.path.exists(DIR):
             os.mkdir(DIR)
-        comments_file_name = os.path.join(DIR, 'comment.csvs')
+        comments_file_name = os.path.join(DIR, 'comment.csv')
         articles_file_name = os.path.join(DIR, 'articles.csv')
         authors_file_name = os.path.join(DIR, 'authors.csv')
 

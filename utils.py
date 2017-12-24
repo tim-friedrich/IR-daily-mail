@@ -27,7 +27,8 @@ def check_file_name(file_name):
 def replace_disallowed_characters(string):
     if not string:
         return ''
-    string = string.replace('\n', '')
+    string = string.replace('\r', ' ')
+    string = string.replace('\n', ' ')
     return string.replace('"', "'")
 
 
