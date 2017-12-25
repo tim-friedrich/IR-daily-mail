@@ -91,7 +91,7 @@ if not os.path.exists('logs'):
     os.mkdir('logs')
 logging_file_name = 'logs/{}.log'.format(time.strftime("%Y%m%d-%H%M%S"))
 
-logging.basicConfig(format=FORMAT, level=logging.DEBUG, filename=logging_file_name)
+logging.basicConfig(format=FORMAT, level=logging.INFO, filename=logging_file_name)
 logging.getLogger().addHandler(logging.StreamHandler())
 
 if not sys.argv or len(sys.argv) == 1 or not (sys.argv[1] in available_arguments):
